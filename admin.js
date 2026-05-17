@@ -58,24 +58,11 @@ function logoutAdmin() {
   window.location.href = "login.html";
 }
 
-const SAMPLE_BOOKINGS = [
-  { id: "BK001", guestName: "Juan ", email: "juan@email.com", phone: "09123456789", roomType: "deluxe", checkIn: "2024-03-10", checkOut: "2024-03-12", guests: 2, totalPrice: "P1,398", status: "confirmed", isPaid: true, requests: "Late check-in requested.", gcashNumber: "0917-123-4567", gcashRef: "REF123456" },
-  { id: "BK002", guestName: "Maria Santos", email: "maria@email.com", phone: "09234567890", roomType: "standard", checkIn: "2024-03-15", checkOut: "2024-03-17", guests: 1, totalPrice: "P998", status: "pending", isPaid: false, requests: "None", gcashNumber: "0917-987-6543", gcashRef: "REF789012" }
-];
-
-let bookingsData = SAMPLE_BOOKINGS.slice();
+let bookingsData = [];
 
 let unsubscribeBookings = null;
 
 function subscribeToRealtimeBookings() {
-  if (!database) {
-    console.log('Realtime Database not available; using local and sample bookings');
-    const localBookings = JSON.parse(localStorage.getItem('eresort_bookings') || '[]');
-    bookingsData = [...SAMPLE_BOOKINGS, ...localBookings];
-    renderBookingsTable(bookingsData);
-    return;
-  }
-
   if (typeof unsubscribeBookings === 'function') unsubscribeBookings();
 
   const bookingsRef = ref(database, 'bookings');
@@ -93,9 +80,6 @@ function subscribeToRealtimeBookings() {
     renderBookingsTable(bookingsData);
   }, (err) => {
     console.error('Error fetching bookings:', err);
-    const localBookings = JSON.parse(localStorage.getItem('eresort_bookings') || '[]');
-    bookingsData = [...SAMPLE_BOOKINGS, ...localBookings];
-    renderBookingsTable(bookingsData);
   });
 
   unsubscribeBookings = unsubscribe;

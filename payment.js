@@ -1,27 +1,6 @@
 import { database, firebaseTimestamp } from './firebase.js';
 import { ref, push } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
 
-function getLocalBookings() {
-  try {
-    const stored = localStorage.getItem('eresort_bookings');
-    return stored ? JSON.parse(stored) : [];
-  } catch (err) {
-    return [];
-  }
-}
-
-function saveLocalBooking(bookingData) {
-  const bookings = getLocalBookings();
-  const id = 'LOCAL_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  bookings.push({ id, ...bookingData, savedAt: new Date().toISOString() });
-  try {
-    localStorage.setItem('eresort_bookings', JSON.stringify(bookings));
-  } catch (err) {
-    console.warn('Could not save booking to localStorage:', err);
-  }
-  return id;
-}
-
 function createBookingData(guestName, email, phone, checkIn, checkOut, guests, roomType, requests, gcashNumber, gcashRef, nights, pricePerNight, totalPrice) {
   return {
     guestName,
@@ -107,28 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
       pendingBooking.totalPrice
     );
 
-    const isFileProtocol = window.location.protocol === 'file:';
-
-    const fallback = () => {
-      const localId = saveLocalBooking(data);
-      alert(`🎉 Booking Confirmed!\n\nThank you for choosing Kamayan Beach Resort.\n\nYour booking has been saved locally (ID: ${localId}).\n\nNote: Run the app on a web server to sync with Firebase.`);
-      try {
-        localStorage.removeItem('eresort_pending_booking');
-      } catch (err) {
-        console.warn('Could not clear pending booking:', err);
-      }
-      window.location.href = 'index.html';
-    };
-
-    if (isFileProtocol || !database) {
-      fallback();
-      return;
-    }
-
     try {
       const submissionPromise = submitBookingToRealtime(data);
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Connection timeout - saving locally')), 5000)
+        setTimeout(() => reject(new Error('Connection timeout')), 5000)
       );
       const bookingRef = await Promise.race([submissionPromise, timeoutPromise]);
       alert(`🎉 Booking Confirmed!\n\nThank you for choosing Kamayan Beach Resort.\n\nYour booking has been successfully submitted.\nReference ID: ${bookingRef.key}\n\nYou will receive a confirmation email shortly with all the details.\n\nWe look forward to welcoming you!`);
@@ -139,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       window.location.href = 'index.html';
     } catch (err) {
-      console.warn('Firebase submission failed:', err);
-      fallback();
+      console.error('Booking submission failed:', err);
+      alert(`❌ Booking Failed\n\n${err.message}\n\nPlease ensure you are running the app on a web server (not file://) and that Firebase is accessible.`);
     } finally {
       if (overlay) overlay.classList.remove('active');
       if (submitBtn) {
