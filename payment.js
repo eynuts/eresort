@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const gcashNumber = document.getElementById('gcash-number').value.trim();
+    const gcashNumber = '0917-123-4567'; // Your resort's GCash number
     const gcashRef = document.getElementById('gcash-ref').value.trim();
 
     if (overlay) overlay.classList.add('active');

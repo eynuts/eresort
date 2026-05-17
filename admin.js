@@ -75,8 +75,7 @@ function subscribeToRealtimeBookings() {
       rows.push({ id: childSnapshot.key, ...item });
     });
 
-    const localBookings = JSON.parse(localStorage.getItem('eresort_bookings') || '[]');
-    bookingsData = [...rows.reverse(), ...localBookings];
+    bookingsData = rows.reverse();
     renderBookingsTable(bookingsData);
   }, (err) => {
     console.error('Error fetching bookings:', err);
@@ -180,10 +179,12 @@ function filterBookings() {
   const roomFilter = filterRoom.value;
 
   const filtered = bookingsData.filter(booking => {
+    if (!booking) return false;
+    
     const matchesSearch = 
-      booking.guestName.toLowerCase().includes(searchTerm) ||
-      booking.email.toLowerCase().includes(searchTerm) ||
-      booking.id.toLowerCase().includes(searchTerm);
+      (booking.guestName ? booking.guestName.toLowerCase().includes(searchTerm) : false) ||
+      (booking.email ? booking.email.toLowerCase().includes(searchTerm) : false) ||
+      (booking.id ? booking.id.toLowerCase().includes(searchTerm) : false);
     
     const matchesStatus = !statusFilter || booking.status === statusFilter;
     const matchesRoom = !roomFilter || booking.roomType === roomFilter;
