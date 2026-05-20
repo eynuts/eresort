@@ -1,10 +1,18 @@
-import { database } from './firebase.js';
-import { ref, query, orderByChild, onValue, get, update, remove } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
+import { database } from "./firebase.js";
+import {
+  ref,
+  query,
+  orderByChild,
+  onValue,
+  get,
+  update,
+  remove,
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 // EmailJS configuration
-const EMAILJS_SERVICE_ID = 'service_8lc2f7c';
-const EMAILJS_TEMPLATE_ID = 'template_oeiohhi';
-const EMAILJS_PUBLIC_KEY = 'bLNJcScAyYYtd_kGu';
+const EMAILJS_SERVICE_ID = "service_8l396ir";
+const EMAILJS_TEMPLATE_ID = "template_5j09hct";
+const EMAILJS_PUBLIC_KEY = "zq70Yag_epRiGOy5d";
 
 // Send email using EmailJS API directly (without library)
 async function sendEmailViaEmailJS(templateParams) {
@@ -13,34 +21,41 @@ async function sendEmailViaEmailJS(templateParams) {
       service_id: EMAILJS_SERVICE_ID,
       template_id: EMAILJS_TEMPLATE_ID,
       user_id: EMAILJS_PUBLIC_KEY,
-      template_params: templateParams
+      template_params: templateParams,
     };
-    
-    console.log('📧 EmailJS Request:', JSON.stringify(requestBody, null, 2));
-    
-    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
 
-    console.log('📧 EmailJS Response Status:', response.status, response.statusText);
+    console.log("📧 EmailJS Request:", JSON.stringify(requestBody, null, 2));
+
+    const response = await fetch(
+      "https://api.emailjs.com/api/v1.0/email/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      },
+    );
+
+    console.log(
+      "📧 EmailJS Response Status:",
+      response.status,
+      response.statusText,
+    );
 
     if (!response.ok) {
       const text = await response.text();
-      console.error('EmailJS API error details:', text);
+      console.error("EmailJS API error details:", text);
       throw new Error(`EmailJS API error: ${response.status} - ${text}`);
     }
 
     // EmailJS returns "OK" as plain text on success, not JSON
     const responseText = await response.text();
-    console.log('📧 EmailJS Response Body:', responseText);
-    
-    return { status: 'success', response: responseText };
+    console.log("📧 EmailJS Response Body:", responseText);
+
+    return { status: "success", response: responseText };
   } catch (error) {
-    console.error('EmailJS send failed:', error);
+    console.error("EmailJS send failed:", error);
     throw error;
   }
 }
@@ -63,23 +78,27 @@ let bookingsData = [];
 let unsubscribeBookings = null;
 
 function subscribeToRealtimeBookings() {
-  if (typeof unsubscribeBookings === 'function') unsubscribeBookings();
+  if (typeof unsubscribeBookings === "function") unsubscribeBookings();
 
-  const bookingsRef = ref(database, 'bookings');
-  const bookingsQuery = query(bookingsRef, orderByChild('createdAt'));
+  const bookingsRef = ref(database, "bookings");
+  const bookingsQuery = query(bookingsRef, orderByChild("createdAt"));
 
-  const unsubscribe = onValue(bookingsQuery, (snapshot) => {
-    const rows = [];
-    snapshot.forEach((childSnapshot) => {
-      const item = childSnapshot.val();
-      rows.push({ id: childSnapshot.key, ...item });
-    });
+  const unsubscribe = onValue(
+    bookingsQuery,
+    (snapshot) => {
+      const rows = [];
+      snapshot.forEach((childSnapshot) => {
+        const item = childSnapshot.val();
+        rows.push({ id: childSnapshot.key, ...item });
+      });
 
-    bookingsData = rows.reverse();
-    renderBookingsTable(bookingsData);
-  }, (err) => {
-    console.error('Error fetching bookings:', err);
-  });
+      bookingsData = rows.reverse();
+      renderBookingsTable(bookingsData);
+    },
+    (err) => {
+      console.error("Error fetching bookings:", err);
+    },
+  );
 
   unsubscribeBookings = unsubscribe;
 }
@@ -101,7 +120,6 @@ const logoutBtn = document.getElementById("logoutBtn");
 let currentBooking = null;
 
 function initAdmin() {
-  
   subscribeToRealtimeBookings();
   setupEventListeners();
 }
@@ -131,14 +149,16 @@ function setupEventListeners() {
   }
 }
 
-
 function renderBookingsTable(bookings) {
   if (bookings.length === 0) {
-    bookingsTableBody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 2rem; color: var(--text-light);">No bookings found</td></tr>';
+    bookingsTableBody.innerHTML =
+      '<tr><td colspan="12" style="text-align: center; padding: 2rem; color: var(--text-light);">No bookings found</td></tr>';
     return;
   }
 
-  bookingsTableBody.innerHTML = bookings.map(booking => `
+  bookingsTableBody.innerHTML = bookings
+    .map(
+      (booking) => `
     <tr>
       <td>${booking.id}</td>
       <td>${booking.guestName}</td>
@@ -147,16 +167,16 @@ function renderBookingsTable(bookings) {
       <td>${formatRoomType(booking.roomType)}</td>
       <td>${formatDate(booking.checkIn)}</td>
       <td>${formatDate(booking.checkOut)}</td>
-      <td>${booking.gcashNumber || '-'}</td>
-      <td>${booking.gcashRef || '-'}</td>
+      <td>${booking.gcashNumber || "-"}</td>
+      <td>${booking.gcashRef || "-"}</td>
       <td>
         <span class="booking__status status__${booking.status}">
           ${booking.status}
         </span>
       </td>
       <td>
-        <span class="booking__payment ${booking.isPaid ? 'paid' : 'unpaid'}" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">
-          ${booking.isPaid ? '✓ Paid' : 'Unpaid'}
+        <span class="booking__payment ${booking.isPaid ? "paid" : "unpaid"}" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+          ${booking.isPaid ? "✓ Paid" : "Unpaid"}
         </span>
       </td>
       <td>
@@ -170,7 +190,9 @@ function renderBookingsTable(bookings) {
         </div>
       </td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function filterBookings() {
@@ -178,14 +200,18 @@ function filterBookings() {
   const statusFilter = filterStatus.value;
   const roomFilter = filterRoom.value;
 
-  const filtered = bookingsData.filter(booking => {
+  const filtered = bookingsData.filter((booking) => {
     if (!booking) return false;
-    
-    const matchesSearch = 
-      (booking.guestName ? booking.guestName.toLowerCase().includes(searchTerm) : false) ||
-      (booking.email ? booking.email.toLowerCase().includes(searchTerm) : false) ||
+
+    const matchesSearch =
+      (booking.guestName
+        ? booking.guestName.toLowerCase().includes(searchTerm)
+        : false) ||
+      (booking.email
+        ? booking.email.toLowerCase().includes(searchTerm)
+        : false) ||
       (booking.id ? booking.id.toLowerCase().includes(searchTerm) : false);
-    
+
     const matchesStatus = !statusFilter || booking.status === statusFilter;
     const matchesRoom = !roomFilter || booking.roomType === roomFilter;
 
@@ -196,7 +222,7 @@ function filterBookings() {
 }
 
 function openBookingModal(bookingId) {
-  const booking = bookingsData.find(b => b.id === bookingId);
+  const booking = bookingsData.find((b) => b.id === bookingId);
   if (!booking) return;
 
   currentBooking = booking;
@@ -205,15 +231,28 @@ function openBookingModal(bookingId) {
   document.getElementById("modalGuestEmail").textContent = booking.email;
   document.getElementById("modalGuestPhone").textContent = booking.phone;
   document.getElementById("modalGuestCount").textContent = booking.guests;
-  document.getElementById("modalRoomType").textContent = formatRoomType(booking.roomType);
-  document.getElementById("modalCheckIn").textContent = formatDate(booking.checkIn);
-  document.getElementById("modalCheckOut").textContent = formatDate(booking.checkOut);
+  document.getElementById("modalRoomType").textContent = formatRoomType(
+    booking.roomType,
+  );
+  document.getElementById("modalCheckIn").textContent = formatDate(
+    booking.checkIn,
+  );
+  document.getElementById("modalCheckOut").textContent = formatDate(
+    booking.checkOut,
+  );
   document.getElementById("modalPrice").textContent = booking.totalPrice;
-  document.getElementById("modalGcashNumber").textContent = booking.gcashNumber || '-';
-  document.getElementById("modalGcashRef").textContent = booking.gcashRef || '-';
-  document.getElementById("modalPaymentStatus").textContent = booking.isPaid ? '✓ Paid' : 'Unpaid';
-  document.getElementById("modalPaymentStatus").style.color = booking.isPaid ? '#10b981' : '#ef4444';
-  document.getElementById("modalRequests").textContent = booking.requests || "No special requests";
+  document.getElementById("modalGcashNumber").textContent =
+    booking.gcashNumber || "-";
+  document.getElementById("modalGcashRef").textContent =
+    booking.gcashRef || "-";
+  document.getElementById("modalPaymentStatus").textContent = booking.isPaid
+    ? "✓ Paid"
+    : "Unpaid";
+  document.getElementById("modalPaymentStatus").style.color = booking.isPaid
+    ? "#10b981"
+    : "#ef4444";
+  document.getElementById("modalRequests").textContent =
+    booking.requests || "No special requests";
   document.getElementById("modalStatus").value = booking.status;
 
   bookingModal.classList.add("active");
@@ -229,19 +268,23 @@ function updateBooking() {
 
   const newStatus = document.getElementById("modalStatus").value;
   if (database && currentBooking.id) {
-    update(ref(database, `bookings/${currentBooking.id}`), { status: newStatus })
+    update(ref(database, `bookings/${currentBooking.id}`), {
+      status: newStatus,
+    })
       .then(() => {
         alert(`Booking ${currentBooking.id} updated successfully!`);
         closeModal();
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        alert('Failed to update booking.');
+        alert("Failed to update booking.");
       });
     return;
   }
 
-  const bookingIndex = bookingsData.findIndex(b => b.id === currentBooking.id);
+  const bookingIndex = bookingsData.findIndex(
+    (b) => b.id === currentBooking.id,
+  );
   if (bookingIndex !== -1) {
     bookingsData[bookingIndex].status = newStatus;
     alert(`Booking ${currentBooking.id} updated successfully!`);
@@ -256,7 +299,7 @@ function confirmBookingAndEmail() {
   const newStatus = "confirmed";
 
   const applyLocalUpdate = () => {
-    const idx = bookingsData.findIndex(b => b.id === bookingId);
+    const idx = bookingsData.findIndex((b) => b.id === bookingId);
     if (idx !== -1) {
       bookingsData[idx].status = newStatus;
       filterBookings();
@@ -275,9 +318,9 @@ function confirmBookingAndEmail() {
         applyLocalUpdate();
         afterUpdate();
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        alert('Failed to confirm booking.');
+        alert("Failed to confirm booking.");
       });
     return;
   }
@@ -290,7 +333,7 @@ function sendBookingEmail(booking) {
   if (!booking || !booking.email) return;
 
   const templateParams = {
-    to_email: booking.email,
+    email: booking.email,
     reply_to: booking.email,
     guest_name: booking.guestName || "Guest",
     booking_id: booking.id,
@@ -301,19 +344,24 @@ function sendBookingEmail(booking) {
     total_price: booking.totalPrice,
     special_requests: booking.requests || "None",
     gcash_number: booking.gcashNumber || "0917-123-4567",
-    gcash_ref: booking.gcashRef || "N/A"
+    gcash_ref: booking.gcashRef || "N/A",
   };
 
-  console.log('📧 Template params being sent:', JSON.stringify(templateParams, null, 2));
+  console.log(
+    "📧 Template params being sent:",
+    JSON.stringify(templateParams, null, 2),
+  );
 
   sendEmailViaEmailJS(templateParams)
     .then((response) => {
-      console.log('Email sent successfully!', response);
-      alert('✓ Confirmation email sent to customer.');
+      console.log("Email sent successfully!", response);
+      alert("✓ Confirmation email sent to customer.");
     })
     .catch((error) => {
-      console.error('Failed to send email:', error);
-      alert('Booking confirmed, but email delivery failed.\nPlease try again or contact customer manually.');
+      console.error("Failed to send email:", error);
+      alert(
+        "Booking confirmed, but email delivery failed.\nPlease try again or contact customer manually.",
+      );
     });
 }
 
@@ -323,7 +371,7 @@ function markBookingAsPaid() {
   const newPaidStatus = !currentBooking.isPaid;
 
   const applyLocalUpdate = () => {
-    const idx = bookingsData.findIndex(b => b.id === bookingId);
+    const idx = bookingsData.findIndex((b) => b.id === bookingId);
     if (idx !== -1) {
       bookingsData[idx].isPaid = newPaidStatus;
       openBookingModal(bookingId);
@@ -331,7 +379,7 @@ function markBookingAsPaid() {
     }
   };
 
-  const statusMessage = newPaidStatus ? 'marked as paid' : 'marked as unpaid';
+  const statusMessage = newPaidStatus ? "marked as paid" : "marked as unpaid";
 
   if (database && bookingId) {
     update(ref(database, `bookings/${bookingId}`), { isPaid: newPaidStatus })
@@ -339,9 +387,9 @@ function markBookingAsPaid() {
         applyLocalUpdate();
         alert(`Booking ${bookingId} has been ${statusMessage}.`);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        alert('Failed to update payment status.');
+        alert("Failed to update payment status.");
       });
     return;
   }
@@ -353,21 +401,25 @@ function markBookingAsPaid() {
 function removeBooking() {
   if (!currentBooking) return;
 
-  if (confirm(`Are you sure you want to delete booking ${currentBooking.id}?`)) {
-if (database && currentBooking.id) {
-    remove(ref(database, `bookings/${currentBooking.id}`))
-      .then(() => {
-        alert(`Booking ${currentBooking.id} has been deleted.`);
-        closeModal();
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Failed to delete booking.');
-      });
-    return;
+  if (
+    confirm(`Are you sure you want to delete booking ${currentBooking.id}?`)
+  ) {
+    if (database && currentBooking.id) {
+      remove(ref(database, `bookings/${currentBooking.id}`))
+        .then(() => {
+          alert(`Booking ${currentBooking.id} has been deleted.`);
+          closeModal();
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Failed to delete booking.");
+        });
+      return;
     }
 
-    const bookingIndex = bookingsData.findIndex(b => b.id === currentBooking.id);
+    const bookingIndex = bookingsData.findIndex(
+      (b) => b.id === currentBooking.id,
+    );
     if (bookingIndex !== -1) {
       const deletedBooking = bookingsData.splice(bookingIndex, 1)[0];
       alert(`Booking ${deletedBooking.id} has been deleted.`);
@@ -385,14 +437,14 @@ function deleteBookingDirect(bookingId) {
       .then(() => {
         alert(`Booking ${bookingId} has been deleted.`);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        alert('Failed to delete booking.');
+        alert("Failed to delete booking.");
       });
     return;
   }
 
-  const bookingIndex = bookingsData.findIndex(b => b.id === bookingId);
+  const bookingIndex = bookingsData.findIndex((b) => b.id === bookingId);
   if (bookingIndex !== -1) {
     bookingsData.splice(bookingIndex, 1);
     alert(`Booking ${bookingId} has been deleted.`);
@@ -402,9 +454,10 @@ function deleteBookingDirect(bookingId) {
 
 function exportBookingsData() {
   const buildAndDownload = (rows) => {
-    let csvContent = "Booking ID,Guest Name,Email,Phone,Room Type,Check-in,Check-out,GCash Number,Reference Number,Guests,Status,Special Requests\n";
-    rows.forEach(booking => {
-      csvContent += `"${booking.id}","${booking.guestName}","${booking.email}","${booking.phone}","${formatRoomType(booking.roomType)}","${booking.checkIn}","${booking.checkOut}","${booking.gcashNumber || ''}","${booking.gcashRef || ''}","${booking.guests}","${booking.status}","${booking.requests || ''}"\n`;
+    let csvContent =
+      "Booking ID,Guest Name,Email,Phone,Room Type,Check-in,Check-out,GCash Number,Reference Number,Guests,Status,Special Requests\n";
+    rows.forEach((booking) => {
+      csvContent += `"${booking.id}","${booking.guestName}","${booking.email}","${booking.phone}","${formatRoomType(booking.roomType)}","${booking.checkIn}","${booking.checkOut}","${booking.gcashNumber || ""}","${booking.gcashRef || ""}","${booking.guests}","${booking.status}","${booking.requests || ""}"\n`;
     });
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -412,7 +465,10 @@ function exportBookingsData() {
     const url = URL.createObjectURL(blob);
 
     link.setAttribute("href", url);
-    link.setAttribute("download", `bookings_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `bookings_${new Date().toISOString().split("T")[0]}.csv`,
+    );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -422,15 +478,15 @@ function exportBookingsData() {
   };
 
   if (database) {
-    get(ref(database, 'bookings'))
-      .then(snapshot => {
+    get(ref(database, "bookings"))
+      .then((snapshot) => {
         const rows = [];
-        snapshot.forEach(childSnapshot => {
+        snapshot.forEach((childSnapshot) => {
           rows.push({ id: childSnapshot.key, ...childSnapshot.val() });
         });
         buildAndDownload(rows);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         buildAndDownload(bookingsData);
       });
@@ -445,14 +501,18 @@ window.deleteBookingDirect = deleteBookingDirect;
 
 function formatDate(dateString) {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function formatRoomType(roomType) {
   const roomTypes = {
     standard: "Standard Room",
     deluxe: "Deluxe Room",
-    family: "Family Room"
+    family: "Family Room",
   };
   return roomTypes[roomType] || roomType;
 }
@@ -464,7 +524,7 @@ function calculateNights(checkIn, checkOut) {
   return nights > 0 ? nights : 0;
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
   if (checkAdminAuth()) {
     initAdmin();
   }
